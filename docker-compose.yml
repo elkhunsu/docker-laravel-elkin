@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ./app-frontend 
+    ports:
+      - "3030:3030"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./app-backend
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: appdb
+      DB_PORT: 5432
+      DB_DATABASE: homestead
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    working_dir: /var/www
+    volumes:
+      - ./app-backend:/var/www
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+      - db
+
+  appdb:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: homestead
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    networks:
+      - db
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: elkin.khunsu@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    networks:
+      - db
+
+networks:
+  app-network:
+    driver: bridge
+  db:
