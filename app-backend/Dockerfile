@@ -38,16 +38,6 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && docker-php-ext-install pdo_pgsql
 
-CMD php artisan db:wipe --force
-
-CMD php artisan config:clear
-CMD php artisan route:clear
-CMD php artisan event:clear
-CMD php artisan view:clear
-
-CMD php artisan migrate
-
-CMD php artisan db:seed --class=UsersTableSeeder --force
-CMD php artisan db:seed --class=CurrenciesTableSeeder --force
+CMD sh ./sh/dev.sh
 
 CMD php artisan serve --host=0.0.0.0
