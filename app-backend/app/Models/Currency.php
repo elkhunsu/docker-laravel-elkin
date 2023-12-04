@@ -11,6 +11,7 @@ class Currency extends Model
     protected $primaryKey = 'currency_id';
 
     protected $fillable = [
+        'currency_code',
         'currency_name',
         'exchange_rate',
     ];

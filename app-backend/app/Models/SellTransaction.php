@@ -16,7 +16,6 @@ class SellTransaction extends Model
         'total_amount',
         'timestamp',
         'notification',
-        // Other fillable fields if any
     ];
 
     protected $primaryKey = 'transaction_id';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BuyTransaction;
+use App\Models\Currency;
 use App\Models\SellTransaction;
 use App\Models\TransactionLog;
 use Carbon\Carbon;
@@ -21,11 +22,12 @@ class TransactionController extends Controller
                 ],
             );
         }
-        $input = $request->only([$userId, 'currency_id', 'amount']);
+        $input = $request->only(['currency_code', 'amount', 'total_amount']);
+        $currencyid = Currency::where('currency_code', $input['currency_code'])->first()->currency_id;
 
         $buyTransaction = new BuyTransaction([
-            'user_id' => $input['user_id'],
-            'currency_id' => $input['currency_id'],
+            'user_id' => $userId,
+            'currency_id' => $currencyid,
             'amount' => $input['amount'],
             'total_amount' => $input['total_amount'],
             'timestamp' => now(),
@@ -35,6 +37,7 @@ class TransactionController extends Controller
         $buyTransaction->save();
 
         $buyTransaction['type_transaction'] = 'buy';
+        $buyTransaction['exchange_rate_used'] = $input['total_amount'] / $input['amount'];
 
         $this->logTransaction($buyTransaction);
 
@@ -43,6 +46,7 @@ class TransactionController extends Controller
 
     public function sellCurrencies(Request $request)
     {
+
         $userId = Auth::user()->user_id;
         if (!$userId) {
             return response()->json(
@@ -52,28 +56,21 @@ class TransactionController extends Controller
             );
         }
 
-        $input = $request->only([$userId, 'currency_id', 'amount', 'total_ammount']);
-
-        $validatedData = $request->validate([
-            'currency_id' => 'required|exists:currencies,id',
-            'amount' => 'required|numeric|min:1',
-            'total_amount' => 'required|numeric|min:1',
-        ]);
-
-        $input = $validatedData;
-
+        $input = $request->only(['currency_code', 'amount', 'total_amount']);
+        $currencyid = Currency::where('currency_code', $input['currency_code'])->first()->currency_id;
         $transaction = new SellTransaction([
             'user_id' => $userId,
-            'currency_id' => $input['currency_id'],
-            'amount' => -$input['amount'],
+            'currency_id' => $currencyid,
+            'amount' => $input['amount'],
             'total_amount' => $input['total_amount'],
             'timestamp' => now(),
             'notification' => 'Transaction created for selling currency.',
         ]);
 
-        $transaction->save();
 
+        $transaction->save();
         $transaction['type_transaction'] = 'sell';
+        $transaction['exchange_rate_used'] = $input['total_amount'] / $input['amount'];
 
         $this->logTransaction($transaction);
 
@@ -132,9 +129,12 @@ class TransactionController extends Controller
     private function logTransaction($transaction)
     {
         TransactionLog::create([
+            'currency_id' => $transaction->currency_id,
+            'exchange_rate_used' => $transaction->exchange_rate_used,
             'transaction_id' => $transaction->transaction_id,
             'user_id' => $transaction->user_id,
             'type_transaction' => $transaction->type_transaction,
+            'timestamp' => $transaction->timestamp,
             'log_message' => 'Transaction logged successfully.',
         ]);
     }

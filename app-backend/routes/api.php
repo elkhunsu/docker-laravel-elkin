@@ -23,6 +23,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/buy-currency', [TransactionController::class, 'buyCurrency']);
-Route::middleware('auth:sanctum')->post('/sell-currency', [TransactionController::class, 'sellCurrency']);
+Route::middleware('auth:sanctum')->post('/sell-currency', [TransactionController::class, 'sellCurrencies']);
 Route::middleware('auth:sanctum')->get('/summary', [TransactionController::class, 'summary']);
 Route::middleware('auth:sanctum')->get('/currencies', [CurrencyController::class, 'index']);
